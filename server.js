@@ -29,7 +29,7 @@ app.use(morgan("common"));
 
 
 // DB
-mongoose.connect('mongodb://127.0.0.1:27017/lap',
+mongoose.connect(process.env.DB || 'mongodb://127.0.0.1:27017/lap',
   { useNewUrlParser: true, useUnifiedTopology: true },
   console.log('connect success')
 );
@@ -44,6 +44,6 @@ app.use('/api/v1/results', resultRoute);
 
 
 
-app.listen(8000, () => {
+app.listen(process.env.PORT || 8000, () => {
   console.log('Server is running on port 8000');
 });
