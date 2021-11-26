@@ -6,11 +6,11 @@ const Bill = require('../Schema/Bill');
 // Create Bill
 router.post('/', async (req, res) => {
   const newBill = new Bill({
-    user:req.body.user,
+    user: req.body.user,
     tests: req.body.tests,
     total: req.body.total,
-    insurance :req.body.insurance,
-    insuranceNumber :req.body.insuranceNumber
+    insurance: req.body.insurance,
+    insuranceNumber: req.body.insuranceNumber
   });
   try {
     const savedBill = await newBill.save();
@@ -19,22 +19,22 @@ router.post('/', async (req, res) => {
     res.status(400).json('Something Whent Wrong');
   }
 })
-  
+
 
 
 // Get All Bills
 router.get('/is/:qra', async (req, res) => {
   try {
     const data = await Bill.find();
-  if (req.params.qra === "notready") {
-    const bills = data.filter((i) => {
-      return i.done === false
-    })
-    res.status(200).json(bills);
-  }if (req.params.qra === "all") {
-    res.status(200).json(data);
-  }
-    
+    if (req.params.qra === "notready") {
+      const bills = data.filter((i) => {
+        return i.done === false
+      })
+      res.status(200).json(bills);
+    } if (req.params.qra === "all") {
+      res.status(200).json(data);
+    }
+
   } catch (err) {
     res.status(404).json(err);
   }
@@ -74,6 +74,17 @@ router.put('/:id', async (req, res) => {
       { $set: req.body },
       { new: true })
     res.status(200).json(bill)
+  } catch (err) {
+    res.status(400).json(err)
+  }
+})
+
+// Delete Bill
+
+router.delete('/:id', async (req, res) => {
+  try {
+    await Bill.findByIdAndDelete(req.params.id)
+    res.status(200).json('Bill has been deleted')
   } catch (err) {
     res.status(400).json(err)
   }

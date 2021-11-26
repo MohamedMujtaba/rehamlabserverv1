@@ -57,4 +57,15 @@ router.put('/:id', async (req, res) => {
   }
 })
 
+
+// Delete test
+
+router.delete('/:id', async (req, res) => {
+  try {
+    await Test.findByIdAndDelete(req.params.id)
+    res.status(200).json('Test has been deleted')
+  } catch (err) {
+    res.status(400).json(err)
+  }
+})
 module.exports = router;
