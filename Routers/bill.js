@@ -94,47 +94,57 @@ router.delete('/:id', async (req, res) => {
 // Get Stats
 
 router.get('/get/stats', async (req, res) => {
-  const date = new Date();
-  const lastMonth = new Date(date.setMonth(date.getMonth() - 1));
-  const previousMonth = new Date(new Date().setMonth(lastMonth.getMonth() - 1));
+  var start = new Date();
+  start.setHours(0, 0, 0, 0);
+  var end = new Date();
+  end.setHours(23, 59, 59, 999);
+  start.setHours(0, 0, 0, 0);
+  var month = new Date().getMonth() + 1;
+  const year = new Date().getFullYear()
+  console.log(year);
   try {
-    const income = await Bill.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: previousMonth },
-        },
-      },
-      {
-        $project: {
-          month: { $month: "$createdAt" },
-          sales: "$total",
-        },
-      },
-      {
-        $group: {
-          _id: "$month",
-          total: { $sum: "$sales" },
-        },
-      },
-      // { $match: { createdAt: { $gte: previousMonth } } },
-      // {
-      //   $project: {
-      //     month: { $month: "$createdAt" },
-      //     sales: "$total"
-      //   },
-      //   {
-      //     $group:{
-      //       _id:"$month",
-      //       total:{$sum:"$sales"}
-      //     },
-      //   }
-      // },
-    ]);
-    res.status(200).json(income)
+    // Today
+    const dayBills = await Bill.find({ createdAt: { $gte: start, $lt: end } });
+    const dayIncome = dayBills.map((i) => {
+      return i.total
+    }).reduce((partial_sum, a) => partial_sum + a, 0)
+
+
+    // Yesterday
+
+
+    // This Week
+    const weekBills = await Bill.find({
+      timestamp: {
+        $gte: new Date(new Date() - 7 * 60 * 60 * 24 * 1000)
+      }
+    });
+    const weekIncome = weekBills.map((i) => {
+      return i.total
+    }).reduce((partial_sum, a) => partial_sum + a, 0)
+    // This month
+    const monthBills = await Bill.find({
+      $expr: {
+        $eq: [{ $month: "$createdAt" }, month]
+      }
+    });
+    const monthIncome = monthBills.map((i) => {
+      return i.total
+    }).reduce((partial_sum, a) => partial_sum + a, 0)
+
+    // This year
+    const yearBills = await Bill.find({
+      $expr: {
+        $eq: [{ $year: "$createdAt" }, year]
+      }
+    });
+    const yearIncome = yearBills.map((i) => {
+      return i.total
+    }).reduce((partial_sum, a) => partial_sum + a, 0)
+    res.status(200).json({ dayIncome, weekIncome, monthIncome, yearIncome })
   } catch (err) {
     res.status(404).json(err);
   }
-
 })
 
 
