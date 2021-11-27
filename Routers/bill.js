@@ -94,14 +94,15 @@ router.delete('/:id', async (req, res) => {
 // Get Stats
 
 router.get('/get/stats', async (req, res) => {
-  var start = new Date();
+  let start = new Date();
   start.setHours(0, 0, 0, 0);
-  var end = new Date();
+  let end = new Date();
   end.setHours(23, 59, 59, 999);
   start.setHours(0, 0, 0, 0);
-  var month = new Date().getMonth() + 1;
+  let yester = new Date().getDate() - 1;
+  let month = new Date().getMonth() + 1;
   const year = new Date().getFullYear()
-  console.log(year);
+  console.log(yester);
   try {
     // Today
     const dayBills = await Bill.find({ createdAt: { $gte: start, $lt: end } });
@@ -111,7 +112,14 @@ router.get('/get/stats', async (req, res) => {
 
 
     // Yesterday
-
+    const yesterdayBills = await Bill.find({
+      $expr: {
+        $eq: [{ $dayOfMonth: "$createdAt" }, yester]
+      }
+    });
+    const yesterdayIncome = yesterdayBills.map((i) => {
+      return i.total
+    }).reduce((partial_sum, a) => partial_sum + a, 0)
 
     // This Week
     const weekBills = await Bill.find({
@@ -141,7 +149,7 @@ router.get('/get/stats', async (req, res) => {
     const yearIncome = yearBills.map((i) => {
       return i.total
     }).reduce((partial_sum, a) => partial_sum + a, 0)
-    res.status(200).json({ dayIncome, weekIncome, monthIncome, yearIncome })
+    res.status(200).json({ dayIncome, yesterdayIncome, weekIncome, monthIncome, yearIncome })
   } catch (err) {
     res.status(404).json(err);
   }
