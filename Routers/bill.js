@@ -50,7 +50,7 @@ router.get('/:id', async (req, res) => {
     res.status(404).json('err');
   }
 });
-// Get Single Bill
+// Get user Bill
 router.get('/userbills/:userid', async (req, res) => {
   try {
     const data = await Bill.find();
@@ -88,6 +88,53 @@ router.delete('/:id', async (req, res) => {
   } catch (err) {
     res.status(400).json(err)
   }
+})
+
+
+// Get Stats
+
+router.get('/get/stats', async (req, res) => {
+  const date = new Date();
+  const lastMonth = new Date(date.setMonth(date.getMonth() - 1));
+  const previousMonth = new Date(new Date().setMonth(lastMonth.getMonth() - 1));
+  try {
+    const income = await Bill.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: previousMonth },
+        },
+      },
+      {
+        $project: {
+          month: { $month: "$createdAt" },
+          sales: "$total",
+        },
+      },
+      {
+        $group: {
+          _id: "$month",
+          total: { $sum: "$sales" },
+        },
+      },
+      // { $match: { createdAt: { $gte: previousMonth } } },
+      // {
+      //   $project: {
+      //     month: { $month: "$createdAt" },
+      //     sales: "$total"
+      //   },
+      //   {
+      //     $group:{
+      //       _id:"$month",
+      //       total:{$sum:"$sales"}
+      //     },
+      //   }
+      // },
+    ]);
+    res.status(200).json(income)
+  } catch (err) {
+    res.status(404).json(err);
+  }
+
 })
 
 
