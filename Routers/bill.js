@@ -103,16 +103,15 @@ router.get('/get/stats', async (req, res) => {
   let yester = new Date().getDate() - 1;
   let month = new Date().getMonth() + 1;
   const year = new Date().getFullYear()
-  console.log(today);
+  console.log(yester);
   try {
     // Today
     const dayBills = await Bill.find({
-      $expr: {
-        $eq: [{ $dayOfMonth: "$createdAt" }, today],
-        $eq: [{ $month: "$createdAt" }, month],
-        $eq: [{ $year: "$createdAt" }, year]
-      }
-      //  createdAt: { $gte: start, $lt: end } 
+      $and: [
+        { $expr: { $eq: [{ $dayOfMonth: "$createdAt" }, today] } },
+        { $expr: { $eq: [{ $month: "$createdAt" }, month] } },
+        { $expr: { $eq: [{ $year: "$createdAt" }, year] } }
+      ]
     });
     const dayIncome = dayBills.map((i) => {
       return i.total
@@ -121,34 +120,27 @@ router.get('/get/stats', async (req, res) => {
 
     // Yesterday
     const yesterdayBills = await Bill.find({
-      $expr: {
-        $eq: [{ $dayOfMonth: "$createdAt" }, yester],
-        $eq: [{ $month: "$createdAt" }, month],
-        $eq: [{ $year: "$createdAt" }, year]
-      }
-      // $expr: {
-      //   $eq: [{ $dayOfMonth: "$createdAt" }, yester]
-      // }
+      $and: [
+        { $expr: { $eq: [{ $dayOfMonth: "$createdAt" }, yester] } },
+        { $expr: { $eq: [{ $month: "$createdAt" }, month] } },
+        { $expr: { $eq: [{ $year: "$createdAt" }, year] } }
+      ]
     });
     const yesterdayIncome = yesterdayBills.map((i) => {
       return i.total
     }).reduce((partial_sum, a) => partial_sum + a, 0)
 
     // This Week
-    const weekBills = await Bill.find({
-      timestamp: {
-        $gte: new Date(new Date() - 7 * 60 * 60 * 24 * 1000)
-      }
-    });
+    const weekBills = await Bill.find({ createdAt: { $gte: new Date(new Date() - 7 * 60 * 60 * 24 * 1000) } })
     const weekIncome = weekBills.map((i) => {
       return i.total
     }).reduce((partial_sum, a) => partial_sum + a, 0)
     // This month
     const monthBills = await Bill.find({
-      $expr: {
-        $eq: [{ $month: "$createdAt" }, month],
-        $eq: [{ $year: "$createdAt" }, year]
-      }
+      $and: [
+        { $expr: { $eq: [{ $month: "$createdAt" }, month] } },
+        { $expr: { $eq: [{ $year: "$createdAt" }, year] } }
+      ]
     });
     const monthIncome = monthBills.map((i) => {
       return i.total
