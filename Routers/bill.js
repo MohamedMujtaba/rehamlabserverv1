@@ -99,13 +99,21 @@ router.get('/get/stats', async (req, res) => {
   let end = new Date();
   end.setHours(23, 59, 59, 999);
   start.setHours(0, 0, 0, 0);
+  let today = new Date().getDate()
   let yester = new Date().getDate() - 1;
   let month = new Date().getMonth() + 1;
   const year = new Date().getFullYear()
-  console.log(yester);
+  console.log(today);
   try {
     // Today
-    const dayBills = await Bill.find({ createdAt: { $gte: start, $lt: end } });
+    const dayBills = await Bill.find({
+      $expr: {
+        $eq: [{ $dayOfMonth: "$createdAt" }, today],
+        $eq: [{ $month: "$createdAt" }, month],
+        $eq: [{ $year: "$createdAt" }, year]
+      }
+      //  createdAt: { $gte: start, $lt: end } 
+    });
     const dayIncome = dayBills.map((i) => {
       return i.total
     }).reduce((partial_sum, a) => partial_sum + a, 0)
@@ -114,8 +122,13 @@ router.get('/get/stats', async (req, res) => {
     // Yesterday
     const yesterdayBills = await Bill.find({
       $expr: {
-        $eq: [{ $dayOfMonth: "$createdAt" }, yester]
+        $eq: [{ $dayOfMonth: "$createdAt" }, yester],
+        $eq: [{ $month: "$createdAt" }, month],
+        $eq: [{ $year: "$createdAt" }, year]
       }
+      // $expr: {
+      //   $eq: [{ $dayOfMonth: "$createdAt" }, yester]
+      // }
     });
     const yesterdayIncome = yesterdayBills.map((i) => {
       return i.total
@@ -133,7 +146,8 @@ router.get('/get/stats', async (req, res) => {
     // This month
     const monthBills = await Bill.find({
       $expr: {
-        $eq: [{ $month: "$createdAt" }, month]
+        $eq: [{ $month: "$createdAt" }, month],
+        $eq: [{ $year: "$createdAt" }, year]
       }
     });
     const monthIncome = monthBills.map((i) => {
