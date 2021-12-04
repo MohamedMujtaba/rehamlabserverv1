@@ -8,7 +8,8 @@ router.post('/', async (req, res) => {
     testName: req.body.testName,
     normal: req.body.normal,
     price: req.body.price,
-    comments: req.body.comments
+    comments: req.body.comments,
+    subTest: req.body.subTest,
   });
   try {
     const savedTest = await newTest.save();
