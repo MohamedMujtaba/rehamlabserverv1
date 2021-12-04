@@ -5,7 +5,7 @@ const TestSchema = new mongoose.Schema({
   normal: { type: Object, require: true },
   comments: { type: String },
   price: { type: Number, require: true },
-  subTests: { type: Array }
+  subTest: { type: Array }
 },
   { timestamps: true }
 )
